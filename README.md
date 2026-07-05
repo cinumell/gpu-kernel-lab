@@ -1,8 +1,9 @@
 # GPU Kernel Lab
 
-A learning notebook in repository form: implement GEMM repeatedly in CUDA, CuTE,
-and Triton; prove correctness; benchmark it; inspect generated PTX/SASS; and
-record what changes between Ampere (A100, SM80) and Hopper (H100, SM90).
+A learning notebook in repository form: implement GPU kernels in CUDA, CuTE,
+and Triton; prove correctness; benchmark them; inspect generated PTX/SASS; and
+record what changes between Volta (V100, SM70), Ampere (A100, SM80), and Hopper
+(H100, SM90).
 
 ## Learning path
 
@@ -13,7 +14,7 @@ record what changes between Ampere (A100, SM80) and Hopper (H100, SM90).
 | 02 | Triton tiled | Blocking, reuse, occupancy, autotuning |
 | 03 | CUDA naive | Threads, grids, memory coalescing |
 | 04 | CUDA tiled | Shared memory, vector loads, pipelining |
-| 05 | CuTE SM80 | Layout algebra and `mma.sync` |
+| 05 | CuTE SM70/80 | Layout algebra, WMMA, `mma.sync` |
 | 06 | CuTE SM90 | WGMMA, TMA, warp specialization |
 | 07 | SASS study | Confirm what the compiler actually emitted |
 
@@ -56,8 +57,19 @@ on those hosts rather than on a macOS editing laptop.
 
 ## Build the CUDA examples
 
-Build on the Linux machine containing the A100 or H100, CUDA Toolkit, a C++
-compiler, and CMake. For an A100 (`sm80`):
+Build on the Linux machine containing the target NVIDIA GPU, CUDA Toolkit, a
+C++ compiler, and CMake. For a V100 (`sm70`):
+
+```bash
+cmake -S cuda -B build/cuda \
+  -G "Unix Makefiles" \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CUDA_ARCHITECTURES=70
+cmake --build build/cuda -j
+./build/cuda/naive_gemm
+```
+
+For an A100 (`sm80`):
 
 ```bash
 cmake -S cuda -B build/cuda \
@@ -69,12 +81,12 @@ cmake --build build/cuda -j
 ```
 
 For an H100, use `-DCMAKE_CUDA_ARCHITECTURES=90`. To produce a binary containing
-code for both architectures, quote the semicolon-separated CMake list:
+code for multiple architectures, quote the semicolon-separated CMake list:
 
 ```bash
 cmake -S cuda -B build/cuda \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CUDA_ARCHITECTURES="80;90"
+  -DCMAKE_CUDA_ARCHITECTURES="70;80;90"
 cmake --build build/cuda -j
 ```
 
@@ -97,7 +109,7 @@ predictable. If Ninja is installed, it is also a good choice:
 cmake -S cuda -B build/cuda-ninja \
   -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CUDA_ARCHITECTURES=80
+  -DCMAKE_CUDA_ARCHITECTURES=70
 cmake --build build/cuda-ninja -j
 ```
 
@@ -124,7 +136,7 @@ separable.
 - Benchmarks synchronize the GPU and never include compilation in timed runs.
 - Every result names GPU, clocks/power policy, CUDA, driver, framework, dtype,
   layouts, dimensions, and commit.
-- Architecture-specific code is explicit (`sm80`, `sm90`), never silently used.
+- Architecture-specific code is explicit (`sm70`, `sm80`, `sm90`), never silently used.
 - Generated binaries, dumps, and benchmark output stay out of Git; conclusions
   and small machine-readable summaries belong in Git.
 

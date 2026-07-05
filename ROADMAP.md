@@ -2,7 +2,7 @@
 
 ## Phase 0 — Measurement discipline
 
-- [ ] Capture A100 and H100 software/hardware environments.
+- [ ] Capture V100, A100, and H100 software/hardware environments.
 - [ ] Establish PyTorch FP32/TF32/FP16 baselines for the standard shape set.
 - [ ] Add JSON/CSV benchmark output and regression thresholds.
 
@@ -16,8 +16,8 @@
 ## Phase 2 — Tensor cores
 
 - [ ] Triton `tl.dot` across FP16, BF16, and TF32 modes.
-- [ ] CUDA WMMA, then inline PTX `mma.sync` on SM80.
-- [ ] Express the SM80 kernel with CuTE layouts and tiled MMA.
+- [ ] CUDA WMMA on SM70, then inline PTX `mma.sync` on SM80.
+- [ ] Express the SM70/SM80 kernel family with CuTE layouts and tiled MMA.
 
 ## Phase 3 — Hopper
 
@@ -30,4 +30,3 @@
 - [ ] Automate cubin extraction and `nvdisasm` reports.
 - [ ] Relate source constructs to PTX and SASS instructions.
 - [ ] Track registers, spills, shared memory, occupancy, and instruction mix.
-
